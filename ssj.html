@@ -53,6 +53,7 @@ footer{ margin-top:20px; font-size:12.5px; color:#6b7785; }
   <div class="err" id="err"></div>
 
   <div class="summary">
+    <div class="scard"><div class="big" id="s-cf">–</div><div class="lbl">เด็ก 0-5 ปี ฟันดีไม่มีผุ (Cavity Free) รวมจังหวัด (เป้า 80%)</div></div>
     <div class="scard"><div class="big" id="s-opd">–</div><div class="lbl">ผู้ป่วยนอกรับบริการทันตกรรม รวมทุกสิทธิ์ (ครั้ง)</div></div>
     <div class="scard"><div class="big" id="s-den">–</div><div class="lbl">ใส่ฟันเทียมถอดได้ทั้งปาก/เกือบทั้งปาก รวมทุกกลุ่ม (ราย)</div></div>
     <div class="scard"><div class="big" id="s-k3">–</div><div class="lbl">เด็ก 0-2 ปี ฝึกแปรงฟันลงมือปฏิบัติ รวมจังหวัด (เป้า 55%)</div></div>
@@ -60,26 +61,31 @@ footer{ margin-top:20px; font-size:12.5px; color:#6b7785; }
     <div class="scard"><div class="big" id="s-k5">–</div><div class="lbl">เด็ก 0-5 ปี เคลือบ/ทาฟลูออไรด์ รวมจังหวัด (เป้า 55%)</div></div>
   </div>
 
-  <h2>1. ผู้ป่วยนอกที่รับบริการทางทันตกรรม รวมทุกสิทธิ์ (ครั้ง) — เรียงมาก→น้อย</h2>
+  <h2>1. ร้อยละเด็กอายุ 0-5 ปี ฟันดีไม่มีผุ (Cavity Free) — เป้า 80%</h2>
+  <div class="legend">A = เด็กฟันดีไม่มีผุ · B = เด็กที่ได้รับการตรวจช่องปาก · ร้อยละ = A/B × 100 · เรียงมาก→น้อย · เส้นประ = เป้า 80%</div>
+  <div class="chartbox"><canvas id="chartCF"></canvas></div>
+  <div class="tablewrap"><table id="tCF"><thead><tr><th>อำเภอ</th><th>ตรวจช่องปาก (B)</th><th>ฟันดีไม่มีผุ (A)</th><th>ร้อยละ</th><th>เทียบเป้า</th></tr></thead><tbody></tbody></table></div>
+
+  <h2>2. ผู้ป่วยนอกที่รับบริการทางทันตกรรม รวมทุกสิทธิ์ (ครั้ง) — เรียงมาก→น้อย</h2>
   <div class="chartbox"><canvas id="chart1"></canvas></div>
   <div class="tablewrap"><table id="t1"><thead><tr><th>อำเภอ</th><th>รวม (ครั้ง)</th><th>สัดส่วน</th></tr></thead><tbody></tbody></table></div>
 
-  <h2>2. ใส่ฟันเทียมถอดได้ทั้งปาก/เกือบทั้งปาก (ราย) — รวมก่อนวัยสูงอายุ + ผู้สูงอายุ</h2>
+  <h2>3. ใส่ฟันเทียมถอดได้ทั้งปาก/เกือบทั้งปาก (ราย) — รวมก่อนวัยสูงอายุ + ผู้สูงอายุ</h2>
   <div class="legend">รวมจาก 2 รายงาน: กลุ่มก่อนวัยสูงอายุ + กลุ่มผู้สูงอายุ (นับทั้ง "ทั้งปาก" และ "เกือบทั้งปาก") · เรียงมาก→น้อย</div>
   <div class="chartbox"><canvas id="chart2"></canvas></div>
   <div class="tablewrap"><table id="t2"><thead><tr><th>อำเภอ</th><th>ก่อนวัยสูงอายุ (ราย)</th><th>ผู้สูงอายุ (ราย)</th><th>รวม (ราย)</th></tr></thead><tbody></tbody></table></div>
 
-  <h2>3. เด็ก 0-2 ปี ผู้ปกครองได้รับการฝึกแปรงฟันแบบลงมือปฏิบัติ (ร้อยละ) — เป้า 55%</h2>
+  <h2>4. เด็ก 0-2 ปี ผู้ปกครองได้รับการฝึกแปรงฟันแบบลงมือปฏิบัติ (ร้อยละ) — เป้า 55%</h2>
   <div class="legend">เรียงมาก→น้อย · สีเขียว = ผ่านเป้า 55% / สีแดง = ต่ำกว่าเป้า · เส้นประ = เป้า 55%</div>
   <div class="chartbox"><canvas id="chart3"></canvas></div>
   <div class="tablewrap"><table id="t3"><thead><tr><th>อำเภอ</th><th>เด็ก 0-2 ปี (B)</th><th>ฝึกแล้ว (A)</th><th>ร้อยละ</th><th>เทียบเป้า</th></tr></thead><tbody></tbody></table></div>
 
-  <h2>4. ร้อยละเด็ก 0-5 ปี ได้รับการตรวจช่องปากโดยทันตบุคลากร — เป้า 50%</h2>
+  <h2>5. ร้อยละเด็ก 0-5 ปี ได้รับการตรวจช่องปากโดยทันตบุคลากร — เป้า 50%</h2>
   <div class="legend">A = เด็กที่ได้รับการตรวจช่องปาก (0-2 + 3-5 ปี) · B = ประชากรเด็ก 0-5 ปี (ทะเบียนราษฎร์) · เรียงมาก→น้อย · เส้นประ = เป้า 50%</div>
   <div class="chartbox"><canvas id="chart4"></canvas></div>
   <div class="tablewrap"><table id="t4"><thead><tr><th>อำเภอ</th><th>เด็ก 0-5 ปี (B)</th><th>ตรวจแล้ว (A)</th><th>ร้อยละ</th><th>เทียบเป้า</th></tr></thead><tbody></tbody></table></div>
 
-  <h2>5. ร้อยละเด็ก 0-5 ปี ได้รับการเคลือบ/ทา ฟลูออไรด์ — เป้า 55%</h2>
+  <h2>6. ร้อยละเด็ก 0-5 ปี ได้รับการเคลือบ/ทา ฟลูออไรด์ — เป้า 55%</h2>
   <div class="legend">A = เด็กที่ได้รับเคลือบ/ทาฟลูออไรด์ (0-2 + 3-5 ปี) · B = ประชากรเด็ก 0-5 ปี (ทะเบียนราษฎร์) · เรียงมาก→น้อย · เส้นประ = เป้า 55%</div>
   <div class="chartbox"><canvas id="chart5"></canvas></div>
   <div class="tablewrap"><table id="t5"><thead><tr><th>อำเภอ</th><th>เด็ก 0-5 ปี (B)</th><th>ฟลูออไรด์แล้ว (A)</th><th>ร้อยละ</th><th>เทียบเป้า</th></tr></thead><tbody></tbody></table></div>
@@ -97,15 +103,17 @@ const REP = {
   fl35: "33f0c0f736920e47abfa777a4041b330",        // เคลือบ/ทาฟลูออไรด์ เด็ก 3-5 ปี (คน)
   exam02: "08d03b47087f5cfa3d1cfdcdd4d7e4b7",      // ตรวจช่องปากเด็ก 0-2 ปี โดยทันตบุคลากร (คน)
   exam35: "5e7a19bfa7c910848977f72acf986b4a",      // ตรวจช่องปากเด็ก 3-5 ปี โดยทันตบุคลากร (คน)
-  popAge: "f83d0cd8b830706dab4cd3cb09afa584"       // ประชากรเด็กรายอายุ (ทะเบียนราษฎร์) รวมอายุ 0-5 = ตัวหาร
+  popAge: "f83d0cd8b830706dab4cd3cb09afa584",      // ประชากรเด็กรายอายุ (ทะเบียนราษฎร์) รวมอายุ 0-5 = ตัวหาร
+  cavityfree: "abt2t2k4z4xeqzytwbave"              // ร้อยละเด็ก 0-5 ปี ฟันดีไม่มีผุ (a=ฟันดีไม่ผุ, b=ตรวจ, %=a/b)
 };
+const TARGET_CF = 80; // ข้อ 1 = ฟันดีไม่มีผุ
 const TARGET4 = 50;  // ข้อ 4 = ตรวจช่องปาก
 const TARGET5 = 55;  // ข้อ 5 = ฟลูออไรด์
 const TARGET3 = 55;
 const API = "https://api-hdc.moph.go.th/v1/reports/province/data/";
 const THAI_MONTHS = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
 const TEAL="#0d7d7a", TEAL2="#5bb5b1", GREEN="#2e9e5b", RED="#e05a4d";
-let chart1=null, chart2=null, chart3=null, chart4=null, chart5=null;
+const charts={};
 
 function currentFY(){ const n=new Date(); let fy=n.getFullYear()+543; if(n.getMonth()+1>=10) fy+=1; return fy; }
 function buildYearOptions(){ const sel=document.getElementById('year'); const cur=currentFY();
@@ -129,7 +137,7 @@ async function loadAll(){
   btn.disabled=true; err.style.display='none'; stat.textContent='กำลังดึงข้อมูลสด…';
   const year=document.getElementById('year').value;
   try{
-    const [v,pre,old,b02,fl02,fl35,ex02,ex35,popRaw]=await Promise.all([fetchA(REP.visits,year),fetchA(REP.denturePre,year),fetchA(REP.dentureOld,year),fetchA(REP.brush02,year),fetchA(REP.fl02,year),fetchA(REP.fl35,year),fetchA(REP.exam02,year),fetchA(REP.exam35,year),fetchRaw(REP.popAge,year)]);
+    const [v,pre,old,b02,fl02,fl35,ex02,ex35,popRaw,cfRaw]=await Promise.all([fetchA(REP.visits,year),fetchA(REP.denturePre,year),fetchA(REP.dentureOld,year),fetchA(REP.brush02,year),fetchA(REP.fl02,year),fetchA(REP.fl35,year),fetchA(REP.exam02,year),fetchA(REP.exam35,year),fetchRaw(REP.popAge,year),fetchRaw(REP.cavityfree,year)]);
     const ind1=v.map(x=>({a:x.a,total:x.r})).sort((a,b)=>b.total-a.total);
     const mPre={},mOld={};
     pre.forEach(x=>mPre[x.code]={a:x.a,sum:x.r+x.r1});
@@ -147,7 +155,8 @@ async function loadAll(){
     const codes4=[...new Set([...popRaw.map(x=>x.a_code),...fl02.map(x=>x.code),...ex02.map(x=>x.code)])];
     const ind4=codes4.map(c=>{const A=(xe02[c]||0)+(xe35[c]||0); const B=dpop[c]||0; return {a:nameMap[c]||c,A,B,pct:B?+(A/B*100).toFixed(2):0};}).sort((a,b)=>b.pct-a.pct); // ข้อ 4 = ตรวจช่องปาก
     const ind5=codes4.map(c=>{const A=(nm02[c]||0)+(nm35[c]||0); const B=dpop[c]||0; return {a:nameMap[c]||c,A,B,pct:B?+(A/B*100).toFixed(2):0};}).sort((a,b)=>b.pct-a.pct); // ข้อ 5 = ฟลูออไรด์
-    render(ind1,ind2,ind3,ind4,ind5);
+    const ind0=cfRaw.map(x=>{const A=+x.a||0,B=+x.b||0; return {a:x.a_name||x.areaname,A,B,pct:B?+(A/B*100).toFixed(2):0};}).sort((a,b)=>b.pct-a.pct); // ข้อ 1 = ฟันดีไม่มีผุ (A/B)
+    render(ind0,ind1,ind2,ind3,ind4,ind5);
     const n=new Date();
     stat.textContent='อัพเดทล่าสุด: '+n.getDate()+' '+THAI_MONTHS[n.getMonth()]+' '+(n.getFullYear()+543)
       +' '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
@@ -165,12 +174,7 @@ function targetLinePlugin(target){
 }
 function hbar(canvasId, labels, data, colors, opt){
   opt=opt||{};
-  const ref={chart1,chart2,chart3};
-  if(canvasId==="chart1"&&chart1)chart1.destroy();
-  if(canvasId==="chart2"&&chart2)chart2.destroy();
-  if(canvasId==="chart3"&&chart3)chart3.destroy();
-  if(canvasId==="chart4"&&chart4)chart4.destroy();
-  if(canvasId==="chart5"&&chart5)chart5.destroy();
+  if(charts[canvasId])charts[canvasId].destroy();
   const c=new Chart(document.getElementById(canvasId),{type:"bar",
     data:{labels,datasets:[{label:opt.label||"จำนวน",data,backgroundColor:colors,borderRadius:5}]},
     options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
@@ -181,9 +185,22 @@ function hbar(canvasId, labels, data, colors, opt){
         y:{ticks:{autoSkip:false,font:{size:12.5},crossAlign:"far"},afterFit(s){ s.width=Math.max(s.width,120); }}
       }},
     plugins: opt.target!=null ? [targetLinePlugin(opt.target)] : []});
-  if(canvasId==="chart1")chart1=c; else if(canvasId==="chart2")chart2=c; else if(canvasId==="chart3")chart3=c; else if(canvasId==="chart4")chart4=c; else chart5=c;
+  charts[canvasId]=c;
 }
-function render(ind1,ind2,ind3,ind4,ind5){
+function render(ind0,ind1,ind2,ind3,ind4,ind5){
+  // chartCF + tableCF (ข้อ 1 ฟันดีไม่มีผุ 0-5 ปี เป้า 80%)
+  hbar("chartCF",ind0.map(r=>r.a),ind0.map(r=>r.pct),ind0.map(r=>r.pct>=TARGET_CF?GREEN:RED),{pct:true,target:TARGET_CF,maxX:100,label:"ร้อยละ"});
+  const tbCF=document.querySelector("#tCF tbody");tbCF.innerHTML="";
+  ind0.forEach((r,i)=>{const ok=r.pct>=TARGET_CF;
+    tbCF.insertAdjacentHTML("beforeend",
+    `<tr><td><span class="rank">${i+1}.</span>${r.a}</td><td>${fmt(r.B)}</td><td>${fmt(r.A)}</td>
+      <td style="color:${ok?'#0f7a3d':'#c0392b'};font-weight:700">${r.pct.toFixed(2)}%</td>
+      <td><span class="pill ${ok?'ok':'no'}">${ok?'ผ่าน':'ต่ำกว่า'}</span></td></tr>`);});
+  const Acf=ind0.reduce((s,r)=>s+r.A,0), Bcf=ind0.reduce((s,r)=>s+r.B,0), pcf=Bcf?Acf/Bcf*100:0;
+  const ecf=document.getElementById("s-cf"); ecf.textContent=pcf.toFixed(2)+"%"; ecf.className="big "+(pcf>=TARGET_CF?"pass":"fail");
+  tbCF.insertAdjacentHTML("beforeend",`<tr class="total"><td>รวมทั้งจังหวัด</td><td>${fmt(Bcf)}</td><td>${fmt(Acf)}</td>
+    <td style="color:${pcf>=TARGET_CF?'#0f7a3d':'#c0392b'}">${pcf.toFixed(2)}%</td>
+    <td><span class="pill ${pcf>=TARGET_CF?'ok':'no'}">${pcf>=TARGET_CF?'ผ่าน':'ต่ำกว่า'}</span></td></tr>`);
   const opdTotal=ind1.reduce((s,r)=>s+r.total,0);
   const denTotal=ind2.reduce((s,r)=>s+r.total,0);
   const k3B=ind3.reduce((s,r)=>s+r.B,0), k3A=ind3.reduce((s,r)=>s+r.A,0), k3pct=k3B?k3A/k3B*100:0;
