@@ -72,6 +72,11 @@ footer{ margin-top:20px; font-size:12.5px; color:#6b7785; }
   <div class="chartbox"><canvas id="chart3"></canvas></div>
   <div class="tablewrap"><table id="t3"><thead><tr><th>อำเภอ</th><th>เด็ก 0-2 ปี (B)</th><th>ฝึกแล้ว (A)</th><th>ร้อยละ</th><th>เทียบเป้า</th></tr></thead><tbody></tbody></table></div>
 
+  <h2>4. เคลือบ/ทา ฟลูออไรด์ในเด็ก 0-5 ปี (คน) — รวม 0-2 ปี + 3-5 ปี · เรียงมาก→น้อย</h2>
+  <div class="legend">รวมจาก 2 รายงาน: เคลือบ/ทาฟลูออไรด์ เด็ก 0-2 ปี + เด็ก 3-5 ปี (นับคนใหม่ในปีงบ)</div>
+  <div class="chartbox"><canvas id="chart4"></canvas></div>
+  <div class="tablewrap"><table id="t4"><thead><tr><th>อำเภอ</th><th>0-2 ปี (คน)</th><th>3-5 ปี (คน)</th><th>รวม (คน)</th></tr></thead><tbody></tbody></table></div>
+
   <footer>แหล่งข้อมูล: ระบบ HDC กระทรวงสาธารณสุข · หมวดทันตกรรม(บริการ) และ OHSP Service Plan · จ.มุกดาหาร · กลุ่มทุกสังกัด · ดึงข้อมูลสดทุกครั้งที่เปิด</footer>
 </div>
 
@@ -80,13 +85,15 @@ const REP = {
   visits: "1b7a1fcbcd6cc2abae4c26d17d2b7045",     // ผู้ป่วยนอกรับบริการทันตกรรม รวมทุกสิทธิ์ (ครั้ง)
   denturePre: "8faa4dcd6a3b538eeef06383ff1fe41c", // ก่อนวัยสูงอายุ ใส่ฟันเทียม
   dentureOld: "0bbcba70dfcb5a9581214c43ddde7bee", // ผู้สูงอายุ ใส่ฟันเทียม
-  brush02: "bac1a981ea682e99509ddeafbe556112"     // เด็ก 0-2 ปี ฝึกแปรงฟันลงมือปฏิบัติ (เป้า 55%)
+  brush02: "bac1a981ea682e99509ddeafbe556112",    // เด็ก 0-2 ปี ฝึกแปรงฟันลงมือปฏิบัติ (เป้า 55%)
+  fl02: "af6f60e19442048ac0abca7b8a7aa7a2",        // เคลือบ/ทาฟลูออไรด์ เด็ก 0-2 ปี (คน)
+  fl35: "33f0c0f736920e47abfa777a4041b330"         // เคลือบ/ทาฟลูออไรด์ เด็ก 3-5 ปี (คน)
 };
 const TARGET3 = 55;
 const API = "https://api-hdc.moph.go.th/v1/reports/province/data/";
 const THAI_MONTHS = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
 const TEAL="#0d7d7a", TEAL2="#5bb5b1", GREEN="#2e9e5b", RED="#e05a4d";
-let chart1=null, chart2=null, chart3=null;
+let chart1=null, chart2=null, chart3=null, chart4=null;
 
 function currentFY(){ const n=new Date(); let fy=n.getFullYear()+543; if(n.getMonth()+1>=10) fy+=1; return fy; }
 function buildYearOptions(){ const sel=document.getElementById('year'); const cur=currentFY();
@@ -105,7 +112,7 @@ async function loadAll(){
   btn.disabled=true; err.style.display='none'; stat.textContent='กำลังดึงข้อมูลสด…';
   const year=document.getElementById('year').value;
   try{
-    const [v,pre,old,b02]=await Promise.all([fetchA(REP.visits,year),fetchA(REP.denturePre,year),fetchA(REP.dentureOld,year),fetchA(REP.brush02,year)]);
+    const [v,pre,old,b02,fl02,fl35]=await Promise.all([fetchA(REP.visits,year),fetchA(REP.denturePre,year),fetchA(REP.dentureOld,year),fetchA(REP.brush02,year),fetchA(REP.fl02,year),fetchA(REP.fl35,year)]);
     const ind1=v.map(x=>({a:x.a,total:x.r})).sort((a,b)=>b.total-a.total);
     const mPre={},mOld={};
     pre.forEach(x=>mPre[x.code]={a:x.a,sum:x.r+x.r1});
@@ -114,7 +121,12 @@ async function loadAll(){
     const ind2=codes.map(c=>{const a=(mPre[c]&&mPre[c].a)||(mOld[c]&&mOld[c].a)||c;
       const p=mPre[c]?mPre[c].sum:0, o=mOld[c]?mOld[c].sum:0; return {a,pre:p,old:o,total:p+o};}).sort((a,b)=>b.total-a.total);
     const ind3=b02.map(x=>({a:x.a,B:x.t,A:x.r,pct:x.f3})).sort((a,b)=>b.pct-a.pct);
-    render(ind1,ind2,ind3);
+    const m02={},m35={};
+    fl02.forEach(x=>m02[x.code]={a:x.a,c:x.r});
+    fl35.forEach(x=>m35[x.code]={a:x.a,c:x.r});
+    const codes4=[...new Set([...fl02.map(x=>x.code),...fl35.map(x=>x.code)])];
+    const ind4=codes4.map(c=>{const a=(m02[c]&&m02[c].a)||(m35[c]&&m35[c].a)||c; const a02=m02[c]?m02[c].c:0, a35=m35[c]?m35[c].c:0; return {a,c02:a02,c35:a35,total:a02+a35};}).sort((a,b)=>b.total-a.total);
+    render(ind1,ind2,ind3,ind4);
     const n=new Date();
     stat.textContent='อัพเดทล่าสุด: '+n.getDate()+' '+THAI_MONTHS[n.getMonth()]+' '+(n.getFullYear()+543)
       +' '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
@@ -136,6 +148,7 @@ function hbar(canvasId, labels, data, colors, opt){
   if(canvasId==="chart1"&&chart1)chart1.destroy();
   if(canvasId==="chart2"&&chart2)chart2.destroy();
   if(canvasId==="chart3"&&chart3)chart3.destroy();
+  if(canvasId==="chart4"&&chart4)chart4.destroy();
   const c=new Chart(document.getElementById(canvasId),{type:"bar",
     data:{labels,datasets:[{label:opt.label||"จำนวน",data,backgroundColor:colors,borderRadius:5}]},
     options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
@@ -146,9 +159,9 @@ function hbar(canvasId, labels, data, colors, opt){
         y:{ticks:{autoSkip:false,font:{size:12.5},crossAlign:"far"},afterFit(s){ s.width=Math.max(s.width,120); }}
       }},
     plugins: opt.target!=null ? [targetLinePlugin(opt.target)] : []});
-  if(canvasId==="chart1")chart1=c; else if(canvasId==="chart2")chart2=c; else chart3=c;
+  if(canvasId==="chart1")chart1=c; else if(canvasId==="chart2")chart2=c; else if(canvasId==="chart3")chart3=c; else chart4=c;
 }
-function render(ind1,ind2,ind3){
+function render(ind1,ind2,ind3,ind4){
   const opdTotal=ind1.reduce((s,r)=>s+r.total,0);
   const denTotal=ind2.reduce((s,r)=>s+r.total,0);
   const k3B=ind3.reduce((s,r)=>s+r.B,0), k3A=ind3.reduce((s,r)=>s+r.A,0), k3pct=k3B?k3A/k3B*100:0;
@@ -180,6 +193,13 @@ function render(ind1,ind2,ind3){
   tb3.insertAdjacentHTML("beforeend",`<tr class="total"><td>รวมทั้งจังหวัด</td><td>${fmt(k3B)}</td><td>${fmt(k3A)}</td>
     <td style="color:${k3pct>=TARGET3?'#0f7a3d':'#c0392b'}">${k3pct.toFixed(2)}%</td>
     <td><span class="pill ${k3pct>=TARGET3?'ok':'no'}">${k3pct>=TARGET3?'ผ่าน':'ต่ำกว่า'}</span></td></tr>`);
+  // chart4 + table4 (เคลือบ/ทาฟลูออไรด์ 0-5 ปี รวม)
+  hbar("chart4",ind4.map(r=>r.a),ind4.map(r=>r.total),"#3a8f8c",{});
+  const tb4=document.querySelector("#t4 tbody");tb4.innerHTML="";
+  ind4.forEach((r,i)=>tb4.insertAdjacentHTML("beforeend",
+    `<tr><td><span class="rank">${i+1}.</span>${r.a}</td><td>${fmt(r.c02)}</td><td>${fmt(r.c35)}</td><td>${fmt(r.total)}</td></tr>`));
+  const t02=ind4.reduce((s,r)=>s+r.c02,0), t35=ind4.reduce((s,r)=>s+r.c35,0), tAll=ind4.reduce((s,r)=>s+r.total,0);
+  tb4.insertAdjacentHTML("beforeend",`<tr class="total"><td>รวมทั้งจังหวัด</td><td>${fmt(t02)}</td><td>${fmt(t35)}</td><td>${fmt(tAll)}</td></tr>`);
 }
 buildYearOptions();
 document.getElementById('year').addEventListener('change', loadAll);
