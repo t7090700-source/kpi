@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>งานทันตสาธารณสุข สสจ.มุกดาหาร — บริการทันตกรรม (ทุกสังกัด)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family:-apple-system,"Segoe UI","Sarabun","Noto Sans Thai",Tahoma,sans-serif;
+  background:#f4f6f8; color:#1f2933; line-height:1.5; padding:20px; }
+.wrap { max-width:1080px; margin:0 auto; }
+h1 { font-size:21px; color:#0d5c5a; }
+h2 { font-size:16px; color:#0d5c5a; margin:24px 0 10px; }
+.toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:14px 0 4px; }
+.toolbar label { font-size:13px; color:#52606d; }
+.toolbar select, .toolbar button { font:inherit; font-size:13px; padding:6px 12px; border-radius:8px; border:1px solid #c4ccd4; background:#fff; cursor:pointer; }
+.toolbar button { background:#0d7d7a; color:#fff; border-color:#0d7d7a; font-weight:600; }
+.toolbar button:disabled { opacity:.6; cursor:default; }
+#status { font-size:12.5px; color:#6b7785; margin-left:auto; }
+.summary { display:flex; gap:14px; flex-wrap:wrap; margin:14px 0; }
+.scard { flex:1; min-width:150px; background:#fff; border:1px solid #e3e8ee; border-radius:12px; padding:14px 18px; }
+.scard .big { font-size:26px; font-weight:800; color:#0d7d7a; }
+.scard .lbl { font-size:12.5px; color:#52606d; }
+.pass{color:#0f7a3d}.fail{color:#c0392b}
+.chartbox { background:#fff; border:1px solid #e3e8ee; border-radius:12px; padding:18px; height:320px; }
+.tablewrap { overflow-x:auto; margin-top:14px; }
+table { border-collapse:collapse; width:100%; font-size:13.5px; background:#fff; min-width:420px; }
+th,td { border:1px solid #eef1f4; padding:8px 12px; text-align:right; }
+th:first-child, td:first-child { text-align:left; }
+thead th { background:#0d7d7a; color:#fff; font-weight:600; font-size:12.5px; }
+tbody tr:hover { background:#f6fbfb; }
+tr.total td { background:#f0f8f7; font-weight:700; border-top:2px solid #0d7d7a; }
+.rank { color:#8a95a1; font-size:11px; margin-right:6px; }
+.pill{display:inline-block;min-width:54px;text-align:center;font-weight:700;font-size:12px;padding:2px 8px;border-radius:13px}
+.pill.ok{background:#e4f6ea;color:#0f7a3d}.pill.no{background:#fce4e4;color:#c0392b}
+.err{ background:#fdeceb; border:1px solid #f3c1bd; color:#9b2c25; padding:12px 14px; border-radius:10px; margin:12px 0; font-size:13.5px; display:none; }
+.legend{font-size:12px;color:#52606d;margin-bottom:8px}
+footer{ margin-top:20px; font-size:12.5px; color:#6b7785; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>งานทันตสาธารณสุข สสจ.มุกดาหาร — บริการทันตกรรม (ทุกสังกัด)</h1>
+
+  <div class="toolbar">
+    <label>ปีงบประมาณ <select id="year"></select></label>
+    <button id="refresh" onclick="loadAll()">↻ อัพเดทข้อมูล</button>
+    <span id="status">กำลังโหลด…</span>
+  </div>
+
+  <div class="err" id="err"></div>
+
+  <div class="summary">
+    <div class="scard"><div class="big" id="s-opd">–</div><div class="lbl">ผู้ป่วยนอกรับบริการทันตกรรม รวมทุกสิทธิ์ (ครั้ง)</div></div>
+    <div class="scard"><div class="big" id="s-den">–</div><div class="lbl">ใส่ฟันเทียมถอดได้ทั้งปาก/เกือบทั้งปาก รวมทุกกลุ่ม (ราย)</div></div>
+    <div class="scard"><div class="big" id="s-k3">–</div><div class="lbl">เด็ก 0-2 ปี ฝึกแปรงฟันลงมือปฏิบัติ รวมจังหวัด (เป้า 55%)</div></div>
+  </div>
+
+  <h2>1. ผู้ป่วยนอกที่รับบริการทางทันตกรรม รวมทุกสิทธิ์ (ครั้ง) — เรียงมาก→น้อย</h2>
+  <div class="chartbox"><canvas id="chart1"></canvas></div>
+  <div class="tablewrap"><table id="t1"><thead><tr><th>อำเภอ</th><th>รวม (ครั้ง)</th><th>สัดส่วน</th></tr></thead><tbody></tbody></table></div>
+
+  <h2>2. ใส่ฟันเทียมถอดได้ทั้งปาก/เกือบทั้งปาก (ราย) — รวมก่อนวัยสูงอายุ + ผู้สูงอายุ</h2>
+  <div class="legend">รวมจาก 2 รายงาน: กลุ่มก่อนวัยสูงอายุ + กลุ่มผู้สูงอายุ (นับทั้ง "ทั้งปาก" และ "เกือบทั้งปาก") · เรียงมาก→น้อย</div>
+  <div class="chartbox"><canvas id="chart2"></canvas></div>
+  <div class="tablewrap"><table id="t2"><thead><tr><th>อำเภอ</th><th>ก่อนวัยสูงอายุ (ราย)</th><th>ผู้สูงอายุ (ราย)</th><th>รวม (ราย)</th></tr></thead><tbody></tbody></table></div>
+
+  <h2>3. เด็ก 0-2 ปี ผู้ปกครองได้รับการฝึกแปรงฟันแบบลงมือปฏิบัติ (ร้อยละ) — เป้า 55%</h2>
+  <div class="legend">เรียงมาก→น้อย · สีเขียว = ผ่านเป้า 55% / สีแดง = ต่ำกว่าเป้า · เส้นประ = เป้า 55%</div>
+  <div class="chartbox"><canvas id="chart3"></canvas></div>
+  <div class="tablewrap"><table id="t3"><thead><tr><th>อำเภอ</th><th>เด็ก 0-2 ปี (B)</th><th>ฝึกแล้ว (A)</th><th>ร้อยละ</th><th>เทียบเป้า</th></tr></thead><tbody></tbody></table></div>
+
+  <footer>แหล่งข้อมูล: ระบบ HDC กระทรวงสาธารณสุข · หมวดทันตกรรม(บริการ) และ OHSP Service Plan · จ.มุกดาหาร · กลุ่มทุกสังกัด · ดึงข้อมูลสดทุกครั้งที่เปิด</footer>
+</div>
+
+<script>
+const REP = {
+  visits: "1b7a1fcbcd6cc2abae4c26d17d2b7045",     // ผู้ป่วยนอกรับบริการทันตกรรม รวมทุกสิทธิ์ (ครั้ง)
+  denturePre: "8faa4dcd6a3b538eeef06383ff1fe41c", // ก่อนวัยสูงอายุ ใส่ฟันเทียม
+  dentureOld: "0bbcba70dfcb5a9581214c43ddde7bee", // ผู้สูงอายุ ใส่ฟันเทียม
+  brush02: "bac1a981ea682e99509ddeafbe556112"     // เด็ก 0-2 ปี ฝึกแปรงฟันลงมือปฏิบัติ (เป้า 55%)
+};
+const TARGET3 = 55;
+const API = "https://api-hdc.moph.go.th/v1/reports/province/data/";
+const THAI_MONTHS = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+const TEAL="#0d7d7a", TEAL2="#5bb5b1", GREEN="#2e9e5b", RED="#e05a4d";
+let chart1=null, chart2=null, chart3=null;
+
+function currentFY(){ const n=new Date(); let fy=n.getFullYear()+543; if(n.getMonth()+1>=10) fy+=1; return fy; }
+function buildYearOptions(){ const sel=document.getElementById('year'); const cur=currentFY();
+  for(let y=cur;y>=cur-3;y--){ const o=document.createElement('option'); o.value=y; o.textContent=y; sel.appendChild(o);} sel.value=cur; }
+function qs(id,year){ return "table_display=ampur&year="+year+"&month=ALL&zone=10&province_code=49&district_code=ALL"
+  +"&subdistrict_code=ALL&department_code=ALL&organization_type=ALL&ministry=ALL&hospital=ALL&service_plan=ALL"
+  +"&jurisdiction_code=ALL&freeze_month=ALL&mental_code=ALL&mental_group_code=ALL&custom=[]"; }
+const fmt=n=>Number(n).toLocaleString("th-TH");
+async function fetchA(id, year){
+  const r=await fetch(API+id+"?"+qs(id,year),{headers:{Accept:"application/json",domain:"mdh"}});
+  const j=await r.json(); if(!j.ok) throw new Error(j.message||"API error");
+  return ((j.rows&&j.rows[0]&&j.rows[0].data)||[]).map(x=>({code:x.a_code,a:x.a_name,r:+x.result||0,r1:+x.result1||0,t:+x.target||0,f3:+x.F3||0}));
+}
+async function loadAll(){
+  const btn=document.getElementById('refresh'),stat=document.getElementById('status'),err=document.getElementById('err');
+  btn.disabled=true; err.style.display='none'; stat.textContent='กำลังดึงข้อมูลสด…';
+  const year=document.getElementById('year').value;
+  try{
+    const [v,pre,old,b02]=await Promise.all([fetchA(REP.visits,year),fetchA(REP.denturePre,year),fetchA(REP.dentureOld,year),fetchA(REP.brush02,year)]);
+    const ind1=v.map(x=>({a:x.a,total:x.r})).sort((a,b)=>b.total-a.total);
+    const mPre={},mOld={};
+    pre.forEach(x=>mPre[x.code]={a:x.a,sum:x.r+x.r1});
+    old.forEach(x=>mOld[x.code]={a:x.a,sum:x.r+x.r1});
+    const codes=[...new Set([...pre.map(x=>x.code),...old.map(x=>x.code)])];
+    const ind2=codes.map(c=>{const a=(mPre[c]&&mPre[c].a)||(mOld[c]&&mOld[c].a)||c;
+      const p=mPre[c]?mPre[c].sum:0, o=mOld[c]?mOld[c].sum:0; return {a,pre:p,old:o,total:p+o};}).sort((a,b)=>b.total-a.total);
+    const ind3=b02.map(x=>({a:x.a,B:x.t,A:x.r,pct:x.f3})).sort((a,b)=>b.pct-a.pct);
+    render(ind1,ind2,ind3);
+    const n=new Date();
+    stat.textContent='อัพเดทล่าสุด: '+n.getDate()+' '+THAI_MONTHS[n.getMonth()]+' '+(n.getFullYear()+543)
+      +' '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  }catch(e){
+    err.style.display='block';
+    err.textContent='ดึงข้อมูลไม่สำเร็จ: '+e.message+' — โปรดเปิดในเว็บเบราว์เซอร์และตรวจสอบอินเทอร์เน็ต';
+    stat.textContent='เกิดข้อผิดพลาด';
+  }finally{ btn.disabled=false; }
+}
+// แก้ปัญหาเส้นกราฟทับชื่ออำเภอ: กันพื้นที่ป้ายแกนซ้ายให้กว้างพอ
+function targetLinePlugin(target){
+  return {id:"tl",afterDraw(ch){ if(target==null)return; const x=ch.scales.x.getPixelForValue(target); const a=ch.chartArea; const ctx=ch.ctx;
+    ctx.save();ctx.strokeStyle="#c0392b";ctx.lineWidth=1.5;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(x,a.top);ctx.lineTo(x,a.bottom);ctx.stroke();
+    ctx.fillStyle="#c0392b";ctx.font="11px sans-serif";ctx.fillText("เป้า "+target+"%",x+3,a.top+11);ctx.restore(); }};
+}
+function hbar(canvasId, labels, data, colors, opt){
+  opt=opt||{};
+  const ref={chart1,chart2,chart3};
+  if(canvasId==="chart1"&&chart1)chart1.destroy();
+  if(canvasId==="chart2"&&chart2)chart2.destroy();
+  if(canvasId==="chart3"&&chart3)chart3.destroy();
+  const c=new Chart(document.getElementById(canvasId),{type:"bar",
+    data:{labels,datasets:[{label:opt.label||"จำนวน",data,backgroundColor:colors,borderRadius:5}]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
+      layout:{padding:{right:12}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>opt.pct?Number(i.raw).toFixed(2)+"%":Number(i.raw).toLocaleString("th-TH")}}},
+      scales:{
+        x:{beginAtZero:true,suggestedMax:opt.maxX,ticks:{callback:v=>opt.pct?v+"%":Number(v).toLocaleString("th-TH")}},
+        y:{ticks:{autoSkip:false,font:{size:12.5},crossAlign:"far"},afterFit(s){ s.width=Math.max(s.width,120); }}
+      }},
+    plugins: opt.target!=null ? [targetLinePlugin(opt.target)] : []});
+  if(canvasId==="chart1")chart1=c; else if(canvasId==="chart2")chart2=c; else chart3=c;
+}
+function render(ind1,ind2,ind3){
+  const opdTotal=ind1.reduce((s,r)=>s+r.total,0);
+  const denTotal=ind2.reduce((s,r)=>s+r.total,0);
+  const k3B=ind3.reduce((s,r)=>s+r.B,0), k3A=ind3.reduce((s,r)=>s+r.A,0), k3pct=k3B?k3A/k3B*100:0;
+  document.getElementById("s-opd").textContent=fmt(opdTotal);
+  document.getElementById("s-den").textContent=fmt(denTotal);
+  const e3=document.getElementById("s-k3"); e3.textContent=k3pct.toFixed(2)+"%"; e3.className="big "+(k3pct>=TARGET3?"pass":"fail");
+  // chart1 + table1
+  hbar("chart1",ind1.map(r=>r.a),ind1.map(r=>r.total),TEAL,{});
+  const tb1=document.querySelector("#t1 tbody");tb1.innerHTML="";
+  ind1.forEach((r,i)=>tb1.insertAdjacentHTML("beforeend",
+    `<tr><td><span class="rank">${i+1}.</span>${r.a}</td><td>${fmt(r.total)}</td><td>${opdTotal?(r.total/opdTotal*100).toFixed(1):0}%</td></tr>`));
+  tb1.insertAdjacentHTML("beforeend",`<tr class="total"><td>รวมทั้งจังหวัด</td><td>${fmt(opdTotal)}</td><td>100%</td></tr>`);
+  // chart2 + table2
+  hbar("chart2",ind2.map(r=>r.a),ind2.map(r=>r.total),TEAL2,{});
+  const tb2=document.querySelector("#t2 tbody");tb2.innerHTML="";
+  ind2.forEach((r,i)=>tb2.insertAdjacentHTML("beforeend",
+    `<tr><td><span class="rank">${i+1}.</span>${r.a}</td><td>${fmt(r.pre)}</td><td>${fmt(r.old)}</td><td>${fmt(r.total)}</td></tr>`));
+  const pT=ind2.reduce((s,r)=>s+r.pre,0), oT=ind2.reduce((s,r)=>s+r.old,0);
+  tb2.insertAdjacentHTML("beforeend",`<tr class="total"><td>รวมทั้งจังหวัด</td><td>${fmt(pT)}</td><td>${fmt(oT)}</td><td>${fmt(denTotal)}</td></tr>`);
+  // chart3 + table3 (%)
+  const maxX3=Math.max(80,Math.ceil(Math.max(...ind3.map(r=>r.pct),TARGET3)/10)*10);
+  hbar("chart3",ind3.map(r=>r.a),ind3.map(r=>+r.pct.toFixed(2)),ind3.map(r=>r.pct>=TARGET3?GREEN:RED),{pct:true,target:TARGET3,maxX:maxX3,label:"ร้อยละ"});
+  const tb3=document.querySelector("#t3 tbody");tb3.innerHTML="";
+  ind3.forEach((r,i)=>{const ok=r.pct>=TARGET3;
+    tb3.insertAdjacentHTML("beforeend",
+    `<tr><td><span class="rank">${i+1}.</span>${r.a}</td><td>${fmt(r.B)}</td><td>${fmt(r.A)}</td>
+      <td style="color:${ok?'#0f7a3d':'#c0392b'};font-weight:700">${r.pct.toFixed(2)}%</td>
+      <td><span class="pill ${ok?'ok':'no'}">${ok?'ผ่าน':'ต่ำกว่า'}</span></td></tr>`);});
+  tb3.insertAdjacentHTML("beforeend",`<tr class="total"><td>รวมทั้งจังหวัด</td><td>${fmt(k3B)}</td><td>${fmt(k3A)}</td>
+    <td style="color:${k3pct>=TARGET3?'#0f7a3d':'#c0392b'}">${k3pct.toFixed(2)}%</td>
+    <td><span class="pill ${k3pct>=TARGET3?'ok':'no'}">${k3pct>=TARGET3?'ผ่าน':'ต่ำกว่า'}</span></td></tr>`);
+}
+buildYearOptions();
+document.getElementById('year').addEventListener('change', loadAll);
+loadAll();
+</script>
+</body>
+</html>

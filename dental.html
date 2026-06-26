@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPI 2569 รพ.สต. — ตัวชี้วัดทันตสาธารณสุข</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family:-apple-system,"Segoe UI","Sarabun","Noto Sans Thai",Tahoma,sans-serif;
+  background:#f4f6f8; color:#1f2933; line-height:1.5; padding:20px; }
+.wrap { max-width:1120px; margin:0 auto; }
+h1 { font-size:21px; color:#0f5132; }
+h2 { font-size:16px; color:#0f5132; margin:24px 0 10px; }
+.toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:14px 0 4px; }
+.toolbar label { font-size:13px; color:#52606d; }
+.toolbar select, .toolbar button { font:inherit; font-size:13px; padding:6px 12px; border-radius:8px;
+  border:1px solid #c4ccd4; background:#fff; cursor:pointer; }
+.toolbar button { background:#0f7a3d; color:#fff; border-color:#0f7a3d; font-weight:600; }
+.toolbar button:disabled { opacity:.6; cursor:default; }
+#status { font-size:12.5px; color:#6b7785; margin-left:auto; }
+.summary { display:flex; gap:14px; flex-wrap:wrap; margin:14px 0; }
+.scard { flex:1; min-width:130px; background:#fff; border:1px solid #e3e8ee; border-radius:12px; padding:13px 18px; }
+.scard .big { font-size:28px; font-weight:700; }
+.scard .lbl { font-size:12.5px; color:#52606d; }
+.pass{color:#0f7a3d}.fail{color:#c0392b}
+.chartbox { background:#fff; border:1px solid #e3e8ee; border-radius:12px; padding:18px 18px 24px; height:360px; }
+/* indicator cards (รายอำเภอ) */
+.cards { display:grid; grid-template-columns:1fr; gap:12px; }
+.card { background:#fff; border:1px solid #e3e8ee; border-radius:12px; padding:16px 18px; display:flex; flex-direction:column; gap:10px; }
+.card.ok{border-left:5px solid #2e9e5b}.card.no{border-left:5px solid #e05a4d}
+.card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.card .name{font-size:15px;font-weight:600;flex:1}
+.badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:6px;white-space:nowrap}
+.badge.ok{background:#e3f5ea;color:#0f7a3d}.badge.no{background:#fdecea;color:#c0392b}
+.nums{display:flex;gap:22px;align-items:baseline;flex-wrap:wrap}
+.nums .val{font-size:26px;font-weight:700}
+.nums .tgt{font-size:13px;color:#52606d}
+.nums .raw{font-size:12px;color:#8a95a1}
+.bar{height:9px;background:#eef1f4;border-radius:6px;position:relative;overflow:hidden}
+.bar .fill{height:100%;border-radius:6px}
+.bar .tline{position:absolute;top:-3px;bottom:-3px;width:2px;background:#34495e}
+.dhead{font-size:12px;color:#8a95a1;margin-bottom:2px}
+.drow{display:grid;grid-template-columns:120px 1fr 150px;gap:10px;align-items:center;padding:3px 0}
+.drow .dn{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow .dbar{height:14px;background:#eef1f4;border-radius:4px;position:relative;overflow:hidden}
+.drow .dbar .df{height:100%;border-radius:4px}
+.drow .dbar .dt{position:absolute;top:-2px;bottom:-2px;width:2px;background:#34495e}
+.drow .dv{font-size:12.5px;text-align:right}
+.drow .dv .pct{font-weight:700}
+.drow .dv .cnt{color:#8a95a1;font-size:11px}
+.toggle{font-size:12.5px;color:#1565c0;background:none;border:none;cursor:pointer;padding:0;text-align:left}
+/* รพ.สต. table */
+.legend { font-size:12px; color:#52606d; margin-bottom:10px; }
+.legend b { color:#1f2933; }
+.tablewrap { overflow-x:auto; }
+table.cmp { border-collapse:collapse; width:100%; font-size:13px; min-width:820px; background:#fff; }
+table.cmp th, table.cmp td { border:1px solid #eef1f4; padding:7px 9px; text-align:center; }
+table.cmp th { background:#2e6f4e; color:#fff; font-size:12px; font-weight:600; }
+table.cmp th .t { font-weight:400; color:#cfe6d8; font-size:11px; }
+table.cmp td.name { text-align:left; white-space:nowrap; }
+table.cmp td.owner { text-align:left; color:#52606d; font-size:12px; white-space:nowrap; }
+table.cmp tr.dist td { background:#eaf3ee; color:#0f5132; font-weight:700; text-align:left; }
+table.cmp tr.total td { background:#fbfdfc; font-weight:600; }
+table.cmp td .pc { font-weight:700; }
+table.cmp td.na { color:#c4ccd4; }
+.cellbar{ height:5px; border-radius:3px; margin-top:3px; background:#eef1f4; overflow:hidden; }
+.cellbar i{ display:block; height:100%; }
+.err{ background:#fdeceb; border:1px solid #f3c1bd; color:#9b2c25; padding:12px 14px; border-radius:10px; margin:12px 0; font-size:13.5px; display:none; }
+footer{ margin-top:18px; font-size:12.5px; color:#6b7785; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>KPI 2569 รพ.สต. — ตัวชี้วัดทันตสาธารณสุข</h1>
+
+  <div class="toolbar">
+    <label>ปีงบประมาณ <select id="year"></select></label>
+    <button id="refresh" onclick="loadAll()">↻ อัพเดทข้อมูล</button>
+    <span id="status">กำลังโหลด…</span>
+  </div>
+
+  <div class="err" id="err"></div>
+
+  <div class="summary">
+    <div class="scard"><div class="big pass" id="s-pass">–</div><div class="lbl">ตัวชี้วัดผ่านเป้า (ระดับจังหวัด)</div></div>
+    <div class="scard"><div class="big fail" id="s-fail">–</div><div class="lbl">ต่ำกว่าเป้า</div></div>
+    <div class="scard"><div class="big" id="s-fac">–</div><div class="lbl">รพ.สต. ที่ติดตาม</div></div>
+  </div>
+  <div class="chartbox"><canvas id="chart"></canvas></div>
+
+  <h2>ผลงานรายอำเภอ (เรียงตามผลงาน)</h2>
+  <div class="cards" id="cards"></div>
+
+  <h2>รายตัวชี้วัด รพ.สต. (เฉพาะที่มีผู้รับผิดชอบ)</h2>
+  <div class="legend" id="indlegend"></div>
+  <div class="tablewrap"><table class="cmp" id="cmp"><tbody></tbody></table></div>
+
+  <footer>แหล่งข้อมูล: ระบบ HDC กระทรวงสาธารณสุข · ตัวชี้วัด OHSP สาขาสุขภาพช่องปาก · กลุ่มนอกสังกัดกระทรวง · ค่าผลงานดึงสดทุกครั้งที่เปิด</footer>
+</div>
+
+<script>
+// ===== ตัวชี้วัด (เรียงตามชีต: 1 ใช้บริการ · 2 เด็ก3-5F · 3 ผู้สูงอายุ · 4 เด็ก4-12F · 5 sealant) =====
+const INDICATORS = [
+  { id:"99ccd1e29a5cdb81256fb3fa587698ef", target:35, short:"1.อัตราการใช้บริการทันตกรรม", clabel:["1.ใช้บริการ","ทันตกรรม"], name:"อัตราการใช้บริการทันตกรรมรวมทุกสิทธิ เฉพาะเขตรับผิดชอบ" },
+  { id:"1fb6b46f1d1fd42362f97072f4b3b653", target:40, short:"2. ผู้สูงอายุตรวจช่องปาก", clabel:["2.ผู้สูงอายุ","ตรวจช่องปาก"], name:"ผู้สูงอายุได้รับการตรวจช่องปาก" },
+  { id:"8ad1c0936b86f836295150428063820e", target:50, short:"3. เด็ก 3-5 ปี ทาฟลูออไรด์", clabel:["3.เด็ก 3-5 ปี","ทาฟลูออไรด์"], name:"เด็ก 3-5 ปี ได้รับการเคลือบ/ทา ฟลูออไรด์เฉพาะที่" },
+  { id:"be5072b516aa3bc989be9780979314e6", target:50, short:"4. เด็ก 4-12 ปี ทาฟลูออไรด์", clabel:["4.เด็ก 4-12 ปี","ทาฟลูออไรด์"], name:"เด็ก 4-12 ปี ได้รับการเคลือบ/ทา ฟลูออไรด์" },
+  { id:"8b6e9aa2219613b9b6443a7724b7fd04", target:10, short:"5. เด็ก 6-12 ปี เคลือบหลุมร่องฟัน", clabel:["5.เด็ก 6-12 ปี","เคลือบหลุมร่องฟัน"], name:"เด็ก 6-12 ปี ได้รับการเคลือบหลุมร่องฟันกรามแท้ (sealant)" }
+];
+// ===== รพ.สต. ที่ติดตาม (มีผู้รับผิดชอบ) แยกตามอำเภอ — เพิ่มอำเภออื่นได้ที่นี่ =====
+const DISTRICTS = [
+  { name:"อำเภอเมืองมุกดาหาร", facilities:[
+    { code:"05742", owner:"เพ็ญศิริ" },
+    { code:"05743", owner:"นัทธ์ธิญา" },
+    { code:"05744", owner:"วิภาววรรณ, ศิรินันท์" },
+    { code:"05745", owner:"จินตนา" },
+    { code:"05747", owner:"ฐานิตา" },
+    { code:"05751", owner:"ณัฐวรรณ (PM)" },
+    { code:"05752", owner:"ธวัชชัย (PM), ปรียานุช" },
+    { code:"05753", owner:"พรศิรินทร์" },
+    { code:"05754", owner:"นราทิพย์" },
+    { code:"05759", owner:"พรรณพร (ผช.)" },
+    { code:"14879", owner:"พาฝัน" },
+    { code:"14893", owner:"วันศิริ (ผช.)" }
+  ]},
+  { name:"อำเภอนิคมคำสร้อย", facilities:[
+    { code:"05763", owner:"ศรีประไพ (PM)" },
+    { code:"05764", owner:"พยุงลักษณ์" }
+  ]},
+  { name:"อำเภอดอนตาล", facilities:[
+    { code:"05770", owner:"ณัชนพ (PM)" },
+    { code:"05771", owner:"วรชาดา" },
+    { code:"05774", owner:"วรินทิพย์" },
+    { code:"05775", owner:"อินทุอร (PM)" },
+    { code:"05780", owner:"พิรัญญา (ผช.)" }
+  ]},
+  { name:"อำเภอดงหลวง", facilities:[
+    { code:"05781", owner:"โกพลรัตน์ (PM), ประภัสสร (PM)" },
+    { code:"05783", owner:"ณัฐวดี" },
+    { code:"05786", owner:"รัชนีกรณ์" },
+    { code:"05787", owner:"ชนิษฐา" },
+    { code:"05788", owner:"ทับทิม" }
+  ]},
+  { name:"อำเภอคำชะอี", facilities:[
+    { code:"05790", owner:"จันทร์จิรา (PM), ธนิชา" },
+    { code:"05791", owner:"เกวลิน (PM)" },
+    { code:"05792", owner:"วาสนา, นิภาพร (ผช.)" },
+    { code:"05793", owner:"ทิพย์สุดา" },
+    { code:"05794", owner:"จุฑาทิพย์" },
+    { code:"05795", owner:"วัชรพงษ์" },
+    { code:"05796", owner:"ดาวดี (ผช.)" },
+    { code:"05798", owner:"ปิยพงษ์" }
+  ]}
+];
+const API = "https://api-hdc.moph.go.th/v1/reports/province/data/";
+const THAI_MONTHS = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+let chart=null, facilities={}, indData=[], indProvince=[];
+
+function currentFY(){ const n=new Date(); let fy=n.getFullYear()+543; if(n.getMonth()+1>=10) fy+=1; return fy; }
+function buildYearOptions(){ const sel=document.getElementById('year'); const cur=currentFY();
+  for(let y=cur;y>=cur-3;y--){ const o=document.createElement('option'); o.value=y; o.textContent=y; sel.appendChild(o); } sel.value=cur; }
+function qs(year,td){ return "table_display="+td+"&year="+year+"&month=ALL&zone=10&province_code=49&district_code=ALL"
+  +"&subdistrict_code=ALL&department_code=ALL&organization_type=2&ministry=ALL&hospital=ALL&service_plan=ALL"
+  +"&jurisdiction_code=ALL&freeze_month=ALL&mental_code=ALL&mental_group_code=ALL&custom=[]"; }
+function cleanName(s){ return (s||"").replace(/^\d+\s*:\s*/,'').replace(/โรงพยาบาลส่งเสริมสุขภาพตำบล/g,'รพ.สต.').trim(); }
+
+async function fetchTD(ind, year, td){
+  const r=await fetch(API+ind.id+"?"+qs(year,td),{headers:{Accept:"application/json",domain:"mdh"}});
+  const j=await r.json(); if(!j.ok) throw new Error(j.message||"API error");
+  return (j.rows&&j.rows[0]&&j.rows[0].data)||[];
+}
+async function loadAll(){
+  const btn=document.getElementById('refresh'),stat=document.getElementById('status'),err=document.getElementById('err');
+  btn.disabled=true; err.style.display='none'; stat.textContent='กำลังดึงข้อมูลสด…';
+  const year=document.getElementById('year').value;
+  try{
+    facilities={}; indData=[]; indProvince=[];
+    for(let i=0;i<INDICATORS.length;i++){
+      // รายอำเภอ
+      const amp=await fetchTD(INDICATORS[i], year, "ampur");
+      let st=0,sr=0; const dist=amp.map(x=>({name:x.a_name, pct:+x.F3, target:+x.target, result:+x.result}));
+      dist.forEach(d=>{ st+=d.target; sr+=d.result; });
+      const total=st>0?+(sr/st*100).toFixed(2):0;
+      indData[i]={total, sumTarget:st, sumResult:sr, dist}; indProvince[i]=total;
+      // รายหน่วยบริการ (รพ.สต.)
+      const prov=await fetchTD(INDICATORS[i], year, "provider");
+      prov.forEach(x=>{ if(!facilities[x.a_code]) facilities[x.a_code]={name:cleanName(x.a_name),vals:{}};
+        facilities[x.a_code].vals[i]={pct:+x.F3,target:+x.target,result:+x.result}; });
+    }
+    renderOverview(); renderDistrictCards(); renderTable();
+    const n=new Date();
+    stat.textContent='อัพเดทล่าสุด: '+n.getDate()+' '+THAI_MONTHS[n.getMonth()]+' '+(n.getFullYear()+543)
+      +' '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  }catch(e){
+    err.style.display='block';
+    err.textContent='ดึงข้อมูลไม่สำเร็จ: '+e.message+' — โปรดเปิดในเว็บเบราว์เซอร์และตรวจสอบอินเทอร์เน็ต';
+    stat.textContent='เกิดข้อผิดพลาด';
+  }finally{ btn.disabled=false; }
+}
+function renderOverview(){
+  const pass=indProvince.filter((v,i)=>v>=INDICATORS[i].target).length;
+  document.getElementById('s-pass').textContent=pass;
+  document.getElementById('s-fail').textContent=INDICATORS.length-pass;
+  document.getElementById('s-fac').textContent=DISTRICTS.reduce((a,d)=>a+d.facilities.length,0);
+  if(chart) chart.destroy();
+  chart=new Chart(document.getElementById('chart'),{ type:'bar',
+    data:{ labels:INDICATORS.map(d=>d.clabel), datasets:[
+      {label:'ผลงานรวม (%)', data:indProvince, backgroundColor:INDICATORS.map((d,i)=>indProvince[i]>=d.target?'#2e9e5b':'#e05a4d'), borderRadius:6},
+      {label:'เป้าหมาย (%)', data:INDICATORS.map(d=>d.target), backgroundColor:'#cfd8e0', borderRadius:6}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'top'}, tooltip:{callbacks:{ title:i=>INDICATORS[i[0].dataIndex].name, label:i=>i.dataset.label+': '+i.formattedValue+'%' }}},
+      scales:{ y:{beginAtZero:true, title:{display:true,text:'ร้อยละ'}}, x:{ticks:{font:{size:10},autoSkip:false}} } } });
+}
+function renderDistrictCards(){
+  const cards=document.getElementById('cards'); cards.innerHTML='';
+  INDICATORS.forEach((ind,idx)=>{
+    const d=indData[idx]; const ok=d.total>=ind.target; const diff=(d.total-ind.target).toFixed(2);
+    const mx=Math.max(ind.target,d.total); const fillW=Math.min(100,d.total/mx*100); const tPos=Math.min(100,ind.target/mx*100);
+    const dmax=Math.max(ind.target, ...d.dist.map(x=>x.pct), 1);
+    const sorted=[...d.dist].sort((a,b)=>b.pct-a.pct);
+    const rows=sorted.map(x=>{ const dok=x.pct>=ind.target; const w=Math.min(100,x.pct/dmax*100); const tp=Math.min(100,ind.target/dmax*100);
+      return `<div class="drow"><div class="dn" title="${x.name}">${x.name}</div>
+        <div class="dbar"><div class="df" style="width:${w}%;background:${dok?'#7cc69b':'#eda49c'}"></div><div class="dt" style="left:${tp}%"></div></div>
+        <div class="dv"><span class="pct" style="color:${dok?'#0f7a3d':'#c0392b'}">${x.pct.toFixed(2)}%</span> <span class="cnt">(${x.result.toLocaleString()}/${x.target.toLocaleString()})</span></div></div>`;
+    }).join('');
+    const el=document.createElement('div'); el.className='card '+(ok?'ok':'no');
+    el.innerHTML=`<div class="top"><div class="name">${ind.short}</div>
+        <div class="badge ${ok?'ok':'no'}">${ok?'ผ่านเป้า':'ต่ำกว่าเป้า'} (${diff>0?'+':''}${diff})</div></div>
+      <div class="nums"><div class="val ${ok?'pass':'fail'}">${d.total.toFixed(2)}%</div>
+        <div class="tgt">เป้าหมาย ${ind.target}%</div>
+        <div class="raw">ผลงาน ${d.sumResult.toLocaleString()} / เป้า ${d.sumTarget.toLocaleString()}</div></div>
+      <div class="bar"><div class="fill" style="width:${fillW}%;background:${ok?'#2e9e5b':'#e05a4d'}"></div><div class="tline" style="left:${tPos}%"></div></div>
+      <button class="toggle" onclick="const n=this.nextElementSibling;n.style.display=(n.style.display==='none'?'block':'none');this.textContent=(n.style.display==='none'?'▸ แสดงรายอำเภอ':'▾ ซ่อนรายอำเภอ')">▾ ซ่อนรายอำเภอ</button>
+      <div><div class="dhead">รายอำเภอ — แถบสีคือผลงาน, เส้นทึบคือเป้า ${ind.target}%</div>${rows}</div>`;
+    cards.appendChild(el);
+  });
+}
+function pcCell(v, target){
+  if(!v) return '<td class="na">–</td>';
+  const ok=v.pct>=target; const w=Math.min(100, v.pct/Math.max(target,v.pct,1)*100);
+  return `<td title="ผลงาน ${v.result.toLocaleString()} / เป้า ${v.target.toLocaleString()}">
+    <span class="pc" style="color:${ok?'#0f7a3d':'#c0392b'}">${v.pct.toFixed(2)}%</span>
+    <div class="cellbar"><i style="width:${w}%;background:${ok?'#7cc69b':'#eda49c'}"></i></div></td>`;
+}
+function renderTable(){
+  document.getElementById('indlegend').innerHTML='คอลัมน์ตัวชี้วัด: '+INDICATORS.map((d,i)=>`<b>${i+1}</b> เป้า ${d.target}%`).join(' · ')+' · ตัวเลข = ร้อยละผลงานสะสมปีงบ (เขียว=ผ่าน / แดง=ต่ำกว่าเป้า)';
+  const tb=document.getElementById('cmp').querySelector('tbody'); tb.innerHTML='';
+  const htr=document.createElement('tr');
+  htr.innerHTML='<th class="name" style="text-align:left">รพ.สต.</th><th style="text-align:left">ผู้รับผิดชอบ</th>'
+    +INDICATORS.map((d,i)=>`<th>${i+1}<br><span class="t">เป้า ${d.target}%</span></th>`).join('')+'<th>ผ่าน</th>';
+  tb.appendChild(htr);
+  const ptr=document.createElement('tr'); ptr.className='total'; let pPass=0;
+  ptr.innerHTML='<td class="name">รวมนอกสังกัดทั้งจังหวัด</td><td class="owner">—</td>'
+    +INDICATORS.map((d,i)=>{ const v=indProvince[i]; const ok=v>=d.target; if(ok)pPass++;
+      return `<td><span class="pc" style="color:${ok?'#0f7a3d':'#c0392b'}">${v.toFixed(2)}%</span></td>`; }).join('')
+    +`<td>${pPass}/5</td>`;
+  tb.appendChild(ptr);
+  DISTRICTS.forEach(dist=>{
+    const dtr=document.createElement('tr'); dtr.className='dist';
+    dtr.innerHTML=`<td colspan="8">${dist.name} (${dist.facilities.length} แห่ง)</td>`;
+    tb.appendChild(dtr);
+    const ranked=dist.facilities.map(fc=>{
+      const f=facilities[fc.code]; let pass=0;
+      INDICATORS.forEach((d,i)=>{ const v=f&&f.vals[i]; if(v&&v.pct>=d.target)pass++; });
+      return {fc, f, pass};
+    }).sort((a,b)=>b.pass-a.pass);
+    ranked.forEach(({fc,f,pass})=>{
+      const nm=f?f.name:fc.code;
+      const tds=INDICATORS.map((d,i)=>{ const v=f&&f.vals[i]; return pcCell(v,d.target); }).join('');
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td class="name">${nm} <span style="color:#8a95a1;font-size:11px">(${fc.code})</span></td>`
+        +`<td class="owner">${fc.owner||'—'}</td>${tds}<td><b>${pass}/5</b></td>`;
+      tb.appendChild(tr);
+    });
+  });
+}
+
+buildYearOptions();
+document.getElementById('year').addEventListener('change', loadAll);
+loadAll();
+</script>
+</body>
+</html>
