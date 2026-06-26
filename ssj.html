@@ -117,7 +117,7 @@ const fmt=n=>Number(n).toLocaleString("th-TH");
 async function fetchA(id, year){
   const r=await fetch(API+id+"?"+qs(id,year),{headers:{Accept:"application/json",domain:"mdh"}});
   const j=await r.json(); if(!j.ok) throw new Error(j.message||"API error");
-  return ((j.rows&&j.rows[0]&&j.rows[0].data)||[]).map(x=>({code:x.a_code,a:x.a_name,r:+x.result||0,r1:+x.result1||0,t:+x.target||0,f3:+x.F3||0}));
+  return ((j.rows&&j.rows[0]&&j.rows[0].data)||[]).map(x=>({code:x.a_code||x.areacode,a:x.a_name||x.areaname,r:+x.result||0,r1:+x.result1||0,t:+x.target||0,f3:+x.F3||0}));
 }
 async function fetchRaw(id, year){
   const r=await fetch(API+id+"?"+qs(id,year),{headers:{Accept:"application/json",domain:"mdh"}});
