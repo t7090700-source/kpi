@@ -72,10 +72,10 @@ footer{ margin-top:20px; font-size:12.5px; color:#6b7785; }
   <div class="chartbox"><canvas id="chart3"></canvas></div>
   <div class="tablewrap"><table id="t3"><thead><tr><th>อำเภอ</th><th>เด็ก 0-2 ปี (B)</th><th>ฝึกแล้ว (A)</th><th>ร้อยละ</th><th>เทียบเป้า</th></tr></thead><tbody></tbody></table></div>
 
-  <h2>4. เคลือบ/ทา ฟลูออไรด์ในเด็ก 0-5 ปี (คน) — รวม 0-2 ปี + 3-5 ปี · เรียงมาก→น้อย</h2>
-  <div class="legend">รวมจาก 2 รายงาน: เคลือบ/ทาฟลูออไรด์ เด็ก 0-2 ปี + เด็ก 3-5 ปี (นับคนใหม่ในปีงบ)</div>
+  <h2>4. ร้อยละเด็ก 0-5 ปี ได้รับการเคลือบ/ทา ฟลูออไรด์ — เป้า 55%</h2>
+  <div class="legend">A = เด็กที่ได้รับเคลือบ/ทาฟลูออไรด์ (0-2 + 3-5 ปี) · B = จำนวนเด็ก 0-5 ปีในเขตรับผิดชอบ · เรียงมาก→น้อย · เส้นประ = เป้า 55% · (หมายเหตุ: ตัวเศษนับตามที่รับบริการ ตัวหารนับตามเขตรับผิดชอบ ใช้ดูแนวโน้ม)</div>
   <div class="chartbox"><canvas id="chart4"></canvas></div>
-  <div class="tablewrap"><table id="t4"><thead><tr><th>อำเภอ</th><th>0-2 ปี (คน)</th><th>3-5 ปี (คน)</th><th>รวม (คน)</th></tr></thead><tbody></tbody></table></div>
+  <div class="tablewrap"><table id="t4"><thead><tr><th>อำเภอ</th><th>เด็ก 0-5 ปี (B)</th><th>ฟลูออไรด์แล้ว (A)</th><th>ร้อยละ</th><th>เทียบเป้า</th></tr></thead><tbody></tbody></table></div>
 
   <footer>แหล่งข้อมูล: ระบบ HDC กระทรวงสาธารณสุข · หมวดทันตกรรม(บริการ) และ OHSP Service Plan · จ.มุกดาหาร · กลุ่มทุกสังกัด · ดึงข้อมูลสดทุกครั้งที่เปิด</footer>
 </div>
@@ -87,8 +87,10 @@ const REP = {
   dentureOld: "0bbcba70dfcb5a9581214c43ddde7bee", // ผู้สูงอายุ ใส่ฟันเทียม
   brush02: "bac1a981ea682e99509ddeafbe556112",    // เด็ก 0-2 ปี ฝึกแปรงฟันลงมือปฏิบัติ (เป้า 55%)
   fl02: "af6f60e19442048ac0abca7b8a7aa7a2",        // เคลือบ/ทาฟลูออไรด์ เด็ก 0-2 ปี (คน)
-  fl35: "33f0c0f736920e47abfa777a4041b330"         // เคลือบ/ทาฟลูออไรด์ เด็ก 3-5 ปี (คน)
+  fl35: "33f0c0f736920e47abfa777a4041b330",        // เคลือบ/ทาฟลูออไรด์ เด็ก 3-5 ปี (คน)
+  pop35: "8ad1c0936b86f836295150428063820e"        // คอลัมน์ B = จำนวนเด็ก 3-5 ปีในเขตรับผิดชอบ (ใช้เป็นตัวหาร)
 };
+const TARGET4 = 55;
 const TARGET3 = 55;
 const API = "https://api-hdc.moph.go.th/v1/reports/province/data/";
 const THAI_MONTHS = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
@@ -112,7 +114,7 @@ async function loadAll(){
   btn.disabled=true; err.style.display='none'; stat.textContent='กำลังดึงข้อมูลสด…';
   const year=document.getElementById('year').value;
   try{
-    const [v,pre,old,b02,fl02,fl35]=await Promise.all([fetchA(REP.visits,year),fetchA(REP.denturePre,year),fetchA(REP.dentureOld,year),fetchA(REP.brush02,year),fetchA(REP.fl02,year),fetchA(REP.fl35,year)]);
+    const [v,pre,old,b02,fl02,fl35,pop35]=await Promise.all([fetchA(REP.visits,year),fetchA(REP.denturePre,year),fetchA(REP.dentureOld,year),fetchA(REP.brush02,year),fetchA(REP.fl02,year),fetchA(REP.fl35,year),fetchA(REP.pop35,year)]);
     const ind1=v.map(x=>({a:x.a,total:x.r})).sort((a,b)=>b.total-a.total);
     const mPre={},mOld={};
     pre.forEach(x=>mPre[x.code]={a:x.a,sum:x.r+x.r1});
@@ -121,11 +123,13 @@ async function loadAll(){
     const ind2=codes.map(c=>{const a=(mPre[c]&&mPre[c].a)||(mOld[c]&&mOld[c].a)||c;
       const p=mPre[c]?mPre[c].sum:0, o=mOld[c]?mOld[c].sum:0; return {a,pre:p,old:o,total:p+o};}).sort((a,b)=>b.total-a.total);
     const ind3=b02.map(x=>({a:x.a,B:x.t,A:x.r,pct:x.f3})).sort((a,b)=>b.pct-a.pct);
-    const m02={},m35={};
-    fl02.forEach(x=>m02[x.code]={a:x.a,c:x.r});
-    fl35.forEach(x=>m35[x.code]={a:x.a,c:x.r});
-    const codes4=[...new Set([...fl02.map(x=>x.code),...fl35.map(x=>x.code)])];
-    const ind4=codes4.map(c=>{const a=(m02[c]&&m02[c].a)||(m35[c]&&m35[c].a)||c; const a02=m02[c]?m02[c].c:0, a35=m35[c]?m35[c].c:0; return {a,c02:a02,c35:a35,total:a02+a35};}).sort((a,b)=>b.total-a.total);
+    const dm02={},dm35={},nm02={},nm35={},nameMap={};
+    b02.forEach(x=>{dm02[x.code]=x.t; nameMap[x.code]=x.a;});      // B เด็ก 0-2 ปีในเขต
+    pop35.forEach(x=>{dm35[x.code]=x.t; nameMap[x.code]=nameMap[x.code]||x.a;}); // B เด็ก 3-5 ปีในเขต
+    fl02.forEach(x=>{nm02[x.code]=x.r; nameMap[x.code]=nameMap[x.code]||x.a;});  // A ฟลูออไรด์ 0-2
+    fl35.forEach(x=>{nm35[x.code]=x.r;});                          // A ฟลูออไรด์ 3-5
+    const codes4=[...new Set([...b02.map(x=>x.code),...fl02.map(x=>x.code)])];
+    const ind4=codes4.map(c=>{const A=(nm02[c]||0)+(nm35[c]||0); const B=(dm02[c]||0)+(dm35[c]||0); return {a:nameMap[c]||c,A,B,pct:B?+(A/B*100).toFixed(2):0};}).sort((a,b)=>b.pct-a.pct);
     render(ind1,ind2,ind3,ind4);
     const n=new Date();
     stat.textContent='อัพเดทล่าสุด: '+n.getDate()+' '+THAI_MONTHS[n.getMonth()]+' '+(n.getFullYear()+543)
@@ -193,13 +197,18 @@ function render(ind1,ind2,ind3,ind4){
   tb3.insertAdjacentHTML("beforeend",`<tr class="total"><td>รวมทั้งจังหวัด</td><td>${fmt(k3B)}</td><td>${fmt(k3A)}</td>
     <td style="color:${k3pct>=TARGET3?'#0f7a3d':'#c0392b'}">${k3pct.toFixed(2)}%</td>
     <td><span class="pill ${k3pct>=TARGET3?'ok':'no'}">${k3pct>=TARGET3?'ผ่าน':'ต่ำกว่า'}</span></td></tr>`);
-  // chart4 + table4 (เคลือบ/ทาฟลูออไรด์ 0-5 ปี รวม)
-  hbar("chart4",ind4.map(r=>r.a),ind4.map(r=>r.total),"#3a8f8c",{});
+  // chart4 + table4 (ร้อยละฟลูออไรด์ 0-5 ปี เป้า 55%)
+  hbar("chart4",ind4.map(r=>r.a),ind4.map(r=>r.pct),ind4.map(r=>r.pct>=TARGET4?GREEN:RED),{pct:true,target:TARGET4,maxX:100,label:"ร้อยละ"});
   const tb4=document.querySelector("#t4 tbody");tb4.innerHTML="";
-  ind4.forEach((r,i)=>tb4.insertAdjacentHTML("beforeend",
-    `<tr><td><span class="rank">${i+1}.</span>${r.a}</td><td>${fmt(r.c02)}</td><td>${fmt(r.c35)}</td><td>${fmt(r.total)}</td></tr>`));
-  const t02=ind4.reduce((s,r)=>s+r.c02,0), t35=ind4.reduce((s,r)=>s+r.c35,0), tAll=ind4.reduce((s,r)=>s+r.total,0);
-  tb4.insertAdjacentHTML("beforeend",`<tr class="total"><td>รวมทั้งจังหวัด</td><td>${fmt(t02)}</td><td>${fmt(t35)}</td><td>${fmt(tAll)}</td></tr>`);
+  ind4.forEach((r,i)=>{const ok=r.pct>=TARGET4;
+    tb4.insertAdjacentHTML("beforeend",
+    `<tr><td><span class="rank">${i+1}.</span>${r.a}</td><td>${fmt(r.B)}</td><td>${fmt(r.A)}</td>
+      <td style="color:${ok?'#0f7a3d':'#c0392b'};font-weight:700">${r.pct.toFixed(2)}%</td>
+      <td><span class="pill ${ok?'ok':'no'}">${ok?'ผ่าน':'ต่ำกว่า'}</span></td></tr>`);});
+  const A4=ind4.reduce((s,r)=>s+r.A,0), B4=ind4.reduce((s,r)=>s+r.B,0), p4=B4?A4/B4*100:0;
+  tb4.insertAdjacentHTML("beforeend",`<tr class="total"><td>รวมทั้งจังหวัด</td><td>${fmt(B4)}</td><td>${fmt(A4)}</td>
+    <td style="color:${p4>=TARGET4?'#0f7a3d':'#c0392b'}">${p4.toFixed(2)}%</td>
+    <td><span class="pill ${p4>=TARGET4?'ok':'no'}">${p4>=TARGET4?'ผ่าน':'ต่ำกว่า'}</span></td></tr>`);
 }
 buildYearOptions();
 document.getElementById('year').addEventListener('change', loadAll);
