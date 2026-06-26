@@ -57,6 +57,7 @@ footer{ margin-top:20px; font-size:12.5px; color:#6b7785; }
     <div class="scard"><div class="big" id="s-den">–</div><div class="lbl">ใส่ฟันเทียมถอดได้ทั้งปาก/เกือบทั้งปาก รวมทุกกลุ่ม (ราย)</div></div>
     <div class="scard"><div class="big" id="s-k3">–</div><div class="lbl">เด็ก 0-2 ปี ฝึกแปรงฟันลงมือปฏิบัติ รวมจังหวัด (เป้า 55%)</div></div>
     <div class="scard"><div class="big" id="s-k4">–</div><div class="lbl">เด็ก 0-5 ปี เคลือบ/ทาฟลูออไรด์ รวมจังหวัด (เป้า 55%)</div></div>
+    <div class="scard"><div class="big" id="s-k5">–</div><div class="lbl">เด็ก 0-5 ปี ตรวจช่องปากโดยทันตบุคลากร รวมจังหวัด (เป้า 50%)</div></div>
   </div>
 
   <h2>1. ผู้ป่วยนอกที่รับบริการทางทันตกรรม รวมทุกสิทธิ์ (ครั้ง) — เรียงมาก→น้อย</h2>
@@ -78,6 +79,11 @@ footer{ margin-top:20px; font-size:12.5px; color:#6b7785; }
   <div class="chartbox"><canvas id="chart4"></canvas></div>
   <div class="tablewrap"><table id="t4"><thead><tr><th>อำเภอ</th><th>เด็ก 0-5 ปี (B)</th><th>ฟลูออไรด์แล้ว (A)</th><th>ร้อยละ</th><th>เทียบเป้า</th></tr></thead><tbody></tbody></table></div>
 
+  <h2>5. ร้อยละเด็ก 0-5 ปี ได้รับการตรวจช่องปากโดยทันตบุคลากร — เป้า 50%</h2>
+  <div class="legend">A = เด็กที่ได้รับการตรวจช่องปาก (0-2 + 3-5 ปี) · B = ประชากรเด็ก 0-5 ปี (ทะเบียนราษฎร์) · เรียงมาก→น้อย · เส้นประ = เป้า 50%</div>
+  <div class="chartbox"><canvas id="chart5"></canvas></div>
+  <div class="tablewrap"><table id="t5"><thead><tr><th>อำเภอ</th><th>เด็ก 0-5 ปี (B)</th><th>ตรวจแล้ว (A)</th><th>ร้อยละ</th><th>เทียบเป้า</th></tr></thead><tbody></tbody></table></div>
+
   <footer>แหล่งข้อมูล: ระบบ HDC กระทรวงสาธารณสุข · หมวดทันตกรรม(บริการ) และ OHSP Service Plan · จ.มุกดาหาร · กลุ่มทุกสังกัด · ดึงข้อมูลสดทุกครั้งที่เปิด</footer>
 </div>
 
@@ -89,14 +95,17 @@ const REP = {
   brush02: "bac1a981ea682e99509ddeafbe556112",    // เด็ก 0-2 ปี ฝึกแปรงฟันลงมือปฏิบัติ (เป้า 55%)
   fl02: "af6f60e19442048ac0abca7b8a7aa7a2",        // เคลือบ/ทาฟลูออไรด์ เด็ก 0-2 ปี (คน)
   fl35: "33f0c0f736920e47abfa777a4041b330",        // เคลือบ/ทาฟลูออไรด์ เด็ก 3-5 ปี (คน)
+  exam02: "08d03b47087f5cfa3d1cfdcdd4d7e4b7",      // ตรวจช่องปากเด็ก 0-2 ปี โดยทันตบุคลากร (คน)
+  exam35: "5e7a19bfa7c910848977f72acf986b4a",      // ตรวจช่องปากเด็ก 3-5 ปี โดยทันตบุคลากร (คน)
   popAge: "f83d0cd8b830706dab4cd3cb09afa584"       // ประชากรเด็กรายอายุ (ทะเบียนราษฎร์) รวมอายุ 0-5 = ตัวหาร
 };
 const TARGET4 = 55;
+const TARGET5 = 50;
 const TARGET3 = 55;
 const API = "https://api-hdc.moph.go.th/v1/reports/province/data/";
 const THAI_MONTHS = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
 const TEAL="#0d7d7a", TEAL2="#5bb5b1", GREEN="#2e9e5b", RED="#e05a4d";
-let chart1=null, chart2=null, chart3=null, chart4=null;
+let chart1=null, chart2=null, chart3=null, chart4=null, chart5=null;
 
 function currentFY(){ const n=new Date(); let fy=n.getFullYear()+543; if(n.getMonth()+1>=10) fy+=1; return fy; }
 function buildYearOptions(){ const sel=document.getElementById('year'); const cur=currentFY();
@@ -120,7 +129,7 @@ async function loadAll(){
   btn.disabled=true; err.style.display='none'; stat.textContent='กำลังดึงข้อมูลสด…';
   const year=document.getElementById('year').value;
   try{
-    const [v,pre,old,b02,fl02,fl35,popRaw]=await Promise.all([fetchA(REP.visits,year),fetchA(REP.denturePre,year),fetchA(REP.dentureOld,year),fetchA(REP.brush02,year),fetchA(REP.fl02,year),fetchA(REP.fl35,year),fetchRaw(REP.popAge,year)]);
+    const [v,pre,old,b02,fl02,fl35,ex02,ex35,popRaw]=await Promise.all([fetchA(REP.visits,year),fetchA(REP.denturePre,year),fetchA(REP.dentureOld,year),fetchA(REP.brush02,year),fetchA(REP.fl02,year),fetchA(REP.fl35,year),fetchA(REP.exam02,year),fetchA(REP.exam35,year),fetchRaw(REP.popAge,year)]);
     const ind1=v.map(x=>({a:x.a,total:x.r})).sort((a,b)=>b.total-a.total);
     const mPre={},mOld={};
     pre.forEach(x=>mPre[x.code]={a:x.a,sum:x.r+x.r1});
@@ -135,7 +144,10 @@ async function loadAll(){
     fl35.forEach(x=>{nm35[x.code]=x.r;});                          // A ฟลูออไรด์ 3-5
     const codes4=[...new Set([...popRaw.map(x=>x.a_code),...fl02.map(x=>x.code)])];
     const ind4=codes4.map(c=>{const A=(nm02[c]||0)+(nm35[c]||0); const B=dpop[c]||0; return {a:nameMap[c]||c,A,B,pct:B?+(A/B*100).toFixed(2):0};}).sort((a,b)=>b.pct-a.pct);
-    render(ind1,ind2,ind3,ind4);
+    const xe02={},xe35={};
+    ex02.forEach(x=>{xe02[x.code]=x.r;}); ex35.forEach(x=>{xe35[x.code]=x.r;});
+    const ind5=codes4.map(c=>{const A=(xe02[c]||0)+(xe35[c]||0); const B=dpop[c]||0; return {a:nameMap[c]||c,A,B,pct:B?+(A/B*100).toFixed(2):0};}).sort((a,b)=>b.pct-a.pct);
+    render(ind1,ind2,ind3,ind4,ind5);
     const n=new Date();
     stat.textContent='อัพเดทล่าสุด: '+n.getDate()+' '+THAI_MONTHS[n.getMonth()]+' '+(n.getFullYear()+543)
       +' '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
@@ -158,6 +170,7 @@ function hbar(canvasId, labels, data, colors, opt){
   if(canvasId==="chart2"&&chart2)chart2.destroy();
   if(canvasId==="chart3"&&chart3)chart3.destroy();
   if(canvasId==="chart4"&&chart4)chart4.destroy();
+  if(canvasId==="chart5"&&chart5)chart5.destroy();
   const c=new Chart(document.getElementById(canvasId),{type:"bar",
     data:{labels,datasets:[{label:opt.label||"จำนวน",data,backgroundColor:colors,borderRadius:5}]},
     options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
@@ -168,9 +181,9 @@ function hbar(canvasId, labels, data, colors, opt){
         y:{ticks:{autoSkip:false,font:{size:12.5},crossAlign:"far"},afterFit(s){ s.width=Math.max(s.width,120); }}
       }},
     plugins: opt.target!=null ? [targetLinePlugin(opt.target)] : []});
-  if(canvasId==="chart1")chart1=c; else if(canvasId==="chart2")chart2=c; else if(canvasId==="chart3")chart3=c; else chart4=c;
+  if(canvasId==="chart1")chart1=c; else if(canvasId==="chart2")chart2=c; else if(canvasId==="chart3")chart3=c; else if(canvasId==="chart4")chart4=c; else chart5=c;
 }
-function render(ind1,ind2,ind3,ind4){
+function render(ind1,ind2,ind3,ind4,ind5){
   const opdTotal=ind1.reduce((s,r)=>s+r.total,0);
   const denTotal=ind2.reduce((s,r)=>s+r.total,0);
   const k3B=ind3.reduce((s,r)=>s+r.B,0), k3A=ind3.reduce((s,r)=>s+r.A,0), k3pct=k3B?k3A/k3B*100:0;
@@ -215,6 +228,19 @@ function render(ind1,ind2,ind3,ind4){
   tb4.insertAdjacentHTML("beforeend",`<tr class="total"><td>รวมทั้งจังหวัด</td><td>${fmt(B4)}</td><td>${fmt(A4)}</td>
     <td style="color:${p4>=TARGET4?'#0f7a3d':'#c0392b'}">${p4.toFixed(2)}%</td>
     <td><span class="pill ${p4>=TARGET4?'ok':'no'}">${p4>=TARGET4?'ผ่าน':'ต่ำกว่า'}</span></td></tr>`);
+  // chart5 + table5 (ร้อยละตรวจช่องปาก 0-5 ปี เป้า 50%)
+  hbar("chart5",ind5.map(r=>r.a),ind5.map(r=>r.pct),ind5.map(r=>r.pct>=TARGET5?GREEN:RED),{pct:true,target:TARGET5,maxX:100,label:"ร้อยละ"});
+  const tb5=document.querySelector("#t5 tbody");tb5.innerHTML="";
+  ind5.forEach((r,i)=>{const ok=r.pct>=TARGET5;
+    tb5.insertAdjacentHTML("beforeend",
+    `<tr><td><span class="rank">${i+1}.</span>${r.a}</td><td>${fmt(r.B)}</td><td>${fmt(r.A)}</td>
+      <td style="color:${ok?'#0f7a3d':'#c0392b'};font-weight:700">${r.pct.toFixed(2)}%</td>
+      <td><span class="pill ${ok?'ok':'no'}">${ok?'ผ่าน':'ต่ำกว่า'}</span></td></tr>`);});
+  const A5=ind5.reduce((s,r)=>s+r.A,0), B5=ind5.reduce((s,r)=>s+r.B,0), p5=B5?A5/B5*100:0;
+  const e5=document.getElementById("s-k5"); e5.textContent=p5.toFixed(2)+"%"; e5.className="big "+(p5>=TARGET5?"pass":"fail");
+  tb5.insertAdjacentHTML("beforeend",`<tr class="total"><td>รวมทั้งจังหวัด</td><td>${fmt(B5)}</td><td>${fmt(A5)}</td>
+    <td style="color:${p5>=TARGET5?'#0f7a3d':'#c0392b'}">${p5.toFixed(2)}%</td>
+    <td><span class="pill ${p5>=TARGET5?'ok':'no'}">${p5>=TARGET5?'ผ่าน':'ต่ำกว่า'}</span></td></tr>`);
 }
 buildYearOptions();
 document.getElementById('year').addEventListener('change', loadAll);
