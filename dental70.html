@@ -60,7 +60,7 @@ h2 { font-size:16px; color:#0f5132; margin:24px 0 10px; }
 .legend { font-size:12px; color:#52606d; margin-bottom:10px; }
 .legend b { color:#1f2933; }
 .tablewrap { overflow-x:auto; }
-table.cmp { border-collapse:collapse; width:100%; font-size:13px; min-width:900px; background:#fff; }
+table.cmp { border-collapse:collapse; width:100%; font-size:13px; min-width:1020px; background:#fff; }
 table.cmp th, table.cmp td { border:1px solid #eef1f4; padding:7px 9px; text-align:center; }
 table.cmp th { background:#2e6f4e; color:#fff; font-size:12px; font-weight:600; }
 table.cmp th .t { font-weight:400; color:#cfe6d8; font-size:11px; }
@@ -102,7 +102,7 @@ footer{ margin-top:18px; font-size:12.5px; color:#6b7785; }
   <h2>ผลงานรายอำเภอ (เรียงตามผลงาน)</h2>
   <div class="cards" id="cards"></div>
 
-  <h2>รายตัวชี้วัด รพ.สต. (เฉพาะที่มีผู้รับผิดชอบ)</h2>
+  <h2>รายตัวชี้วัด รพ.สต. ที่มีทันตบุคลากร (พร้อม ทพ.พี่เลี้ยง)</h2>
   <div class="legend" id="indlegend"></div>
   <div class="tablewrap"><table class="cmp" id="cmp"><tbody></tbody></table></div>
 
@@ -119,49 +119,56 @@ const INDICATORS = [
   { id:"be5072b516aa3bc989be9780979314e6", target:50, short:"5. เด็กอายุ 4-12 ปี ได้รับการเคลือบ/ทา ฟลูออไรด์", clabel:["5.เด็ก 4-12 ปี","ฟลูออไรด์"], name:"เด็กอายุ 4-12 ปี ได้รับการเคลือบ/ทา ฟลูออไรด์ เฉพาะเขตรับผิดชอบ (คน)" },
   { id:"8b6e9aa2219613b9b6443a7724b7fd04", target:20, short:"6. เด็กอายุ 6-12 ปี ได้รับการเคลือบหลุมร่องฟันกรามแท้", clabel:["6.เด็ก 6-12 ปี","Sealant"], name:"เด็กอายุ 6-12 ปี ได้รับการเคลือบหลุมร่องฟันกรามแท้ (sealant)" }
 ];
-// ===== รพ.สต. ที่ติดตาม (มีผู้รับผิดชอบ) แยกตามอำเภอ — เพิ่ม/แก้ได้ที่นี่ =====
+// ===== รพ.สต. ที่ติดตาม (มีทันตบุคลากร) แยกตามอำเภอ — owner = ทันตบุคลากร (ทภ/นวก/ผช), mentor = ทพ.พี่เลี้ยง =====
+// ที่มา: ตารางจับคู่ ทพ.พี่เลี้ยง × ทันตบุคลากร รพ.สต. (วาระ กสพ. ครั้งที่ 1/2569, 20 พ.ค. 69) — เพิ่ม/แก้ได้ที่นี่
 const DISTRICTS = [
   { name:"อำเภอเมืองมุกดาหาร", facilities:[
-    { code:"05742", owner:"เพ็ญศิริ" },
-    { code:"05743", owner:"นัทธ์ธิญา" },
-    { code:"05744", owner:"วิภาววรรณ, ศิรินันท์" },
-    { code:"05745", owner:"จินตนา" },
-    { code:"05747", owner:"ฐานิตา" },
-    { code:"05751", owner:"ณัฐวรรณ (PM)" },
-    { code:"05752", owner:"ธวัชชัย (PM), ปรียานุช" },
-    { code:"05753", owner:"พรศิรินทร์" },
-    { code:"05754", owner:"นราทิพย์" },
-    { code:"05759", owner:"พรรณพร (ผช.)" },
-    { code:"14879", owner:"พาฝัน" },
-    { code:"14893", owner:"วันศิริ (ผช.)" }
+    { code:"05751", owner:"ณัฏฐวรรณ (ทภ)", mentor:"ทพ.วิริยะ" },
+    { code:"05745", owner:"จินตนา (ทภ)", mentor:"ทพญ.วนิดา" },
+    { code:"05752", owner:"ปรียานุช, ธวัชชัย (ทภ)", mentor:"ทพญ.สกุลรัตน์" },
+    { code:"14893", owner:"วันศิริ (ผช), วิภาวรรณ (ทภ)", mentor:"" },
+    { code:"05753", owner:"พรศิรินทร์ (นวก)", mentor:"ทพ.ธนากร" },
+    { code:"05743", owner:"นัทธ์ธิญา (ทภ)", mentor:"" },
+    { code:"05744", owner:"วิภาวรรณ, ศิรินันท์ (ทภ)", mentor:"ทพญ.ประไพพร" },
+    { code:"14879", owner:"พาฝัน (ทภ)", mentor:"" },
+    { code:"05742", owner:"เพ็ญศิริ (นวก)", mentor:"ทพ.วิริยะ" },
+    { code:"05747", owner:"ฐานิตา (ทภ)", mentor:"ทพ.ธนกร" },
+    { code:"05740", owner:"ทิพย์สุดา (ทภ)", mentor:"ทพญ.พราวนภา" },
+    { code:"05754", owner:"นราทิพย์ (ทภ)", mentor:"ทพญ.สุดารัตน์" },
+    { code:"05759", owner:"พรรณพร (ผช)", mentor:"ทพญ.พราวนภา" }
   ]},
   { name:"อำเภอนิคมคำสร้อย", facilities:[
-    { code:"05763", owner:"ศรีประไพ (PM)" },
-    { code:"05764", owner:"พยุงลักษณ์" }
+    { code:"05763", owner:"ศรีประไพ (ทภ)", mentor:"ทพ.ธนัฏฐา" },
+    { code:"05764", owner:"พยุงลักษณ์ (ทภ)", mentor:"ทพ.จิรวัฒน์" },
+    { code:"05766", owner:"วราภรณ์ (ทภ)", mentor:"ทพ.จักรกฤษ" }
   ]},
   { name:"อำเภอดอนตาล", facilities:[
-    { code:"05770", owner:"ณัชนพ (PM)" },
-    { code:"05771", owner:"วรชาดา" },
-    { code:"05774", owner:"วรินทิพย์" },
-    { code:"05775", owner:"อินทุอร (PM)" },
-    { code:"05780", owner:"พิรัญญา (ผช.)" }
+    { code:"05775", owner:"อินทุอร (นวก) · ย้าย", mentor:"ทพญ.อัจฉรา" },
+    { code:"05771", owner:"วรชาดา (ทภ)", mentor:"ทพญ.สุธินี" },
+    { code:"05774", owner:"วรินทิพย์ (นวก)", mentor:"ทพญ.อัจฉรา" },
+    { code:"05780", owner:"พิรัญญา (ผช)", mentor:"ทพ.ธัชชัย ภูเมศ" },
+    { code:"05770", owner:"ณัชนพ (ทภ)", mentor:"ทพญ.อัจฉรา" }
   ]},
   { name:"อำเภอดงหลวง", facilities:[
-    { code:"05781", owner:"โกพลรัตน์ (PM), ประภัสสร (PM)" },
-    { code:"05783", owner:"ณัฐวดี" },
-    { code:"05786", owner:"รัชนีกรณ์" },
-    { code:"05787", owner:"ชนิษฐา" },
-    { code:"05788", owner:"ทับทิม" }
+    { code:"05786", owner:"รัชนีกรณ์ (ทภ)", mentor:"ทพญ.กชพรรณ" },
+    { code:"05781", owner:"โกพลรัตน์, ประภัสสร", mentor:"ทพญ.นันทิยา" },
+    { code:"05783", owner:"ณัฐวดี (นวก)", mentor:"ทพ.ภานุมาศ" },
+    { code:"05787", owner:"ขนิษฐา (นวก)", mentor:"ทพญ.นิสาชล" },
+    { code:"05788", owner:"ทับทิม (ทภ)", mentor:"ทพญ.นิสาชล" }
   ]},
   { name:"อำเภอคำชะอี", facilities:[
-    { code:"05790", owner:"จันทร์จิรา (PM), ธนิชา" },
-    { code:"05791", owner:"เกวลิน (PM)" },
-    { code:"05792", owner:"วาสนา, นิภาพร (ผช.)" },
-    { code:"05793", owner:"ทิพย์สุดา" },
-    { code:"05794", owner:"จุฑาทิพย์" },
-    { code:"05795", owner:"วัชรพงษ์" },
-    { code:"05796", owner:"ดาวดี (ผช.)" },
-    { code:"05798", owner:"ปิยพงษ์" }
+    { code:"05792", owner:"นิภาพร (ผช), วาสนา (ทภ)", mentor:"ทพ.โอภาส" },
+    { code:"05790", owner:"จันทร์จิรา, ธนิชา (ทภ)", mentor:"ทพญ.อาทิตยา" },
+    { code:"05791", owner:"เกวลิน (ทภ)", mentor:"ทพญ.อาทิตยา" },
+    { code:"05795", owner:"วัชรพงษ์ (นวก)", mentor:"ทพ.โอภาส" },
+    { code:"05796", owner:"ดาวดี (ผช), วาสนา (ทภ)", mentor:"ทพ.โอภาส" },
+    { code:"05798", owner:"ปิยะพงษ์ (ทภ)", mentor:"ทพญ.อาทิตยา" },
+    { code:"05794", owner:"จุฑาทิพย์ (ทภ)", mentor:"ทพ.โอภาส" }
+  ]},
+  { name:"อำเภอหนองสูง", facilities:[
+    { code:"05810", owner:"สวราชย์ (ทภ)", mentor:"ทพ.ณัฐพงศ์" },
+    { code:"05806", owner:"ศราวุฒ (ทภ)", mentor:"ทพญ.พิชชาพร" },
+    { code:"05809", owner:"ธรรมนิตย์, พนมพร", mentor:"ทพ.ณัฐพงศ์" }
   ]}
 ];
 const API = "https://api-hdc.moph.go.th/v1/reports/province/data/";
@@ -282,18 +289,18 @@ function renderTable(){
   document.getElementById('indlegend').innerHTML='คอลัมน์ตัวชี้วัด: '+INDICATORS.map((d,i)=>`<b>${i+1}</b> เป้า ${d.target}%`).join(' · ')+' · ตัวเลข = ร้อยละผลงานสะสมปีงบ (เขียว=ผ่าน / แดง=ต่ำกว่าเป้า / – = ยังไม่มีข้อมูล)';
   const tb=document.getElementById('cmp').querySelector('tbody'); tb.innerHTML='';
   const htr=document.createElement('tr');
-  htr.innerHTML='<th class="name" style="text-align:left">รพ.สต.</th><th style="text-align:left">ผู้รับผิดชอบ</th>'
+  htr.innerHTML='<th class="name" style="text-align:left">รพ.สต.</th><th style="text-align:left">ผู้รับผิดชอบ</th><th style="text-align:left">ทพ.พี่เลี้ยง</th>'
     +INDICATORS.map((d,i)=>`<th title="${d.name}">${i+1}<br><span class="t">เป้า ${d.target}%</span></th>`).join('')+'<th>ผ่าน</th>';
   tb.appendChild(htr);
   const ptr=document.createElement('tr'); ptr.className='total'; let pPass=0;
-  ptr.innerHTML='<td class="name">รวมนอกสังกัดทั้งจังหวัด</td><td class="owner">—</td>'
+  ptr.innerHTML='<td class="name">รวมนอกสังกัดทั้งจังหวัด</td><td class="owner">—</td><td class="owner">—</td>'
     +INDICATORS.map((d,i)=>{ const v=indProvince[i]; if(v==null) return '<td class="na">–</td>'; const ok=v>=d.target; if(ok)pPass++;
       return `<td><span class="pc" style="color:${ok?'#0f7a3d':'#c0392b'}">${v.toFixed(2)}%</span></td>`; }).join('')
     +`<td>${pPass}/${N}</td>`;
   tb.appendChild(ptr);
   DISTRICTS.forEach(dist=>{
     const dtr=document.createElement('tr'); dtr.className='dist';
-    dtr.innerHTML=`<td colspan="${N+3}">${dist.name} (${dist.facilities.length} แห่ง)</td>`;
+    dtr.innerHTML=`<td colspan="${N+4}">${dist.name} (${dist.facilities.length} แห่ง)</td>`;
     tb.appendChild(dtr);
     const ranked=dist.facilities.map(fc=>{
       const f=facilities[fc.code]; let pass=0;
@@ -305,7 +312,7 @@ function renderTable(){
       const tds=INDICATORS.map((d,i)=>{ const v=f&&f.vals[i]; return pcCell(v,d.target); }).join('');
       const tr=document.createElement('tr');
       tr.innerHTML=`<td class="name">${nm} <span style="color:#8a95a1;font-size:11px">(${fc.code})</span></td>`
-        +`<td class="owner">${fc.owner||'—'}</td>${tds}<td><b>${pass}/${N}</b></td>`;
+        +`<td class="owner">${fc.owner||'—'}</td><td class="owner">${fc.mentor||'<span style="color:#c0392b">ยังไม่มี</span>'}</td>${tds}<td><b>${pass}/${N}</b></td>`;
       tb.appendChild(tr);
     });
   });
